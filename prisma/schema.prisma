@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model allergy {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String   @db.VarChar(255)
+  severity    String   @db.VarChar(255)
+  resident_id String   @db.Uuid
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @default(now()) @db.Timestamp(6)
+  resident    resident @relation(fields: [resident_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model appointment {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  date        DateTime @db.Date
+  time        DateTime @db.Time(6)
+  doctor_name String   @db.VarChar(255)
+  resident_id String   @db.Uuid
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @default(now()) @db.Timestamp(6)
+  resident    resident @relation(fields: [resident_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model care_home {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String     @db.VarChar(255)
+  description String?    @db.VarChar(255)
+  image       String?    @db.VarChar(255)
+  created_at  DateTime   @default(now()) @db.Timestamp(6)
+  updated_at  DateTime   @default(now()) @db.Timestamp(6)
+  user_id     String     @db.Uuid
+  tenant_id   String     @db.VarChar(255)
+  user        user       @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  resident    resident[]
+}
+
+model care_plan {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String   @db.VarChar(255)
+  description String   @db.VarChar(255)
+  resident_id String   @db.Uuid
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @default(now()) @db.Timestamp(6)
+  resident    resident @relation(fields: [resident_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model caregiver {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String   @db.Uuid
+  resident_id String   @db.Uuid
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @default(now()) @db.Timestamp(6)
+  resident    resident @relation(fields: [resident_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user        user     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model medication {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String   @db.VarChar(255)
+  dosage      String   @db.VarChar(255)
+  resident_id String   @db.Uuid
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @default(now()) @db.Timestamp(6)
+  resident    resident @relation(fields: [resident_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model resident {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  first_name    String        @db.VarChar(255)
+  last_name     String        @db.VarChar(255)
+  date_of_birth DateTime      @db.Date
+  care_home_id  String        @db.Uuid
+  created_at    DateTime      @default(now()) @db.Timestamp(6)
+  updated_at    DateTime      @default(now()) @db.Timestamp(6)
+  allergy       allergy[]
+  appointment   appointment[]
+  care_plan     care_plan[]
+  caregiver     caregiver[]
+  medication    medication[]
+  care_home     care_home     @relation(fields: [care_home_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model user {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email       String      @unique @db.VarChar(255)
+  firstName   String?     @db.VarChar(255)
+  lastName    String?     @db.VarChar(255)
+  roq_user_id String      @db.VarChar(255)
+  tenant_id   String      @db.VarChar(255)
+  created_at  DateTime    @default(now()) @db.Timestamp(6)
+  updated_at  DateTime    @default(now()) @db.Timestamp(6)
+  care_home   care_home[]
+  caregiver   caregiver[]
+}
